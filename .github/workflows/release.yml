@@ -19,17 +19,22 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
-    - name: Build JAR
-      run: mvn -B package --file pom.xml
-
-    - name: Prepare output folders
+    - name: Build local-fx JAR
       run: |
         mkdir out-local-fx
+        mvn clean package --file pom.xml
+        REGULAR_JAR=$(ls target/*-SNAPSHOT.jar | grep -v shaded | head -n 1)
+        cp "$REGULAR_JAR" out-local-fx/ProjectInspector.jar
+
+    - name: Build shaded JAR
+      run: |
         mkdir out-maven-fx
+        mvn clean package -Pshaded -DskipTests
+        SHADED_JAR=$(ls target/*shaded.jar | head -n 1)
+        cp "$SHADED_JAR" out-maven-fx/ProjectInspector.jar
 
-        cp target/*.jar out-local-fx/ProjectInspector.jar
-        cp target/*.jar out-maven-fx/ProjectInspector.jar
-
+    - name: Create supportive files
+      run: |
         cp run-local-fx.bat out-local-fx/
         cp run.bat out-maven-fx/
 
@@ -39,13 +44,11 @@ jobs:
 
         cp README*.txt out-local-fx/ || echo "No README"
         cp README*.txt out-maven-fx/ || echo "No README"
-        
-        
 
     - name: Create ZIPs
       run: |
         cd out-local-fx && zip -r ../ProjectInspector-local-fx.zip . && cd ..
-        cd out-maven-fx && zip -r ../ProjectInspector-maven-fx.zip . && cd .
+        cd out-maven-fx && zip -r ../ProjectInspector-maven-fx.zip . && cd ..
 
     - name: Create GitHub Release and upload assets
       uses: softprops/action-gh-release@v2
