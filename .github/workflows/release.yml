@@ -1,0 +1,57 @@
+name: Build and Release Desktop ZIPs
+
+on:
+  push:
+    tags:
+      - 'v*'  # запуск при пуші тегів типу v1.0, v1.1.2 тощо
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Build JAR
+      run: mvn -B package --file pom.xml
+
+    - name: Prepare output folders
+      run: |
+        mkdir out-local-fx
+        mkdir out-maven-fx
+
+        cp target/*.jar out-local-fx/ProjectInspector.jar
+        cp target/*.jar out-maven-fx/ProjectInspector.jar
+
+        cp run-local-fx.bat out-local-fx/
+        cp run.bat out-maven-fx/
+
+        echo "Version: ${{ github.ref_name }}" > version.txt
+        cp version.txt out-local-fx/
+        cp version.txt out-maven-fx/
+
+        cp README*.txt out-local-fx/ || echo "No README"
+        cp README*.txt out-maven-fx/ || echo "No README"
+        
+        
+
+    - name: Create ZIPs
+      run: |
+        cd out-local-fx && zip -r ../ProjectInspector-local-fx.zip . && cd ..
+        cd out-maven-fx && zip -r ../ProjectInspector-maven-fx.zip . && cd .
+
+    - name: Create GitHub Release and upload assets
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          ProjectInspector-local-fx.zip
+          ProjectInspector-maven-fx.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
