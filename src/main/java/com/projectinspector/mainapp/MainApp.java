@@ -2,7 +2,8 @@ package com.projectinspector.mainapp;
 
 import com.projectinspector.desktop.ui.actions.DummyAction;
 import com.projectinspector.desktop.ui.actions.FxAction;
-
+import com.projectinspector.desktop.ui.actions.OpenFilesAction;
+import com.projectinspector.desktop.ui.actions.OpenFolderAction;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -12,10 +13,12 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.geometry.Orientation;
 
-public class MainApp extends Application {
+public  class MainApp extends Application {
+	private static Stage _primaryStage;
 
 	@Override
 	public void start(Stage primaryStage) {
+		_primaryStage = primaryStage;
 		primaryStage.setTitle("Project Inspector");
 
 		TreeItem<String> treeModel = createTreeModel();
@@ -29,7 +32,12 @@ public class MainApp extends Application {
 
 		// Основний layout
 		BorderPane root = new BorderPane();
-		root.setTop(new VBox(createMenuBar(), createToolBar()));
+		
+		ToolBar toolBar1 = createToolBar();
+		ToolBar toolBar2 = createToolBar();
+		ToolBar toolBar3 = new ToolBar(toolBar2, toolBar1);
+		
+		root.setTop(new VBox(createMenuBar(), toolBar3));
 		root.setCenter(splitPane);
 		root.setBottom(createStatusBar());
 
@@ -65,14 +73,17 @@ public class MainApp extends Application {
 
 		Menu fileMenu = new Menu("File");
 
-		MenuItem fileOpen = createMenuItem(new DummyAction("Open File", 'O'));
 		MenuItem fileSave = createMenuItem(new DummyAction("Save", 'S'));
 		MenuItem exit = createMenuItem(new DummyAction("Exit", 'X'));
-
-		fileMenu.getItems().add(fileOpen);
+		MenuItem openFilesMenu = createMenuItem(new OpenFilesAction("Open files", 'O', "Opens one or several files in one folder", null)) ;
+		MenuItem openFolderMenu = createMenuItem(new OpenFolderAction("Open folder", 'L', "Opens single folder", null)) ;
+		
+		fileMenu.getItems().add(openFolderMenu);
+		fileMenu.getItems().add(openFilesMenu);
 		fileMenu.getItems().add(fileSave);
 		fileMenu.getItems().add(exit);
-
+		
+		
 		menuBar.getMenus().add(fileMenu);
 		return menuBar;
 
@@ -99,6 +110,7 @@ public class MainApp extends Application {
 			}
 		}
 
+		
 		return toolBar;
 	}
 	
@@ -107,6 +119,10 @@ public class MainApp extends Application {
 	    btn.setTooltip(new Tooltip(action.getTooltip()));
 	    btn.setOnAction(e -> action.execute());
 	    return btn;
+	}
+
+	public static  Stage getPrimaryStage() {
+		return _primaryStage;
 	}
 
 }
