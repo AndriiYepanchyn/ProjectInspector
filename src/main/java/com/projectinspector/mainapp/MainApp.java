@@ -1,5 +1,7 @@
 package com.projectinspector.mainapp;
 
+import com.projectinspector.datamodel.FileNode;
+import com.projectinspector.desktop.ui.FileNodeCellFactory;
 import com.projectinspector.desktop.ui.actions.DummyAction;
 import com.projectinspector.desktop.ui.actions.FxAction;
 import com.projectinspector.desktop.ui.actions.OpenFilesAction;
@@ -15,14 +17,25 @@ import javafx.geometry.Orientation;
 
 public  class MainApp extends Application {
 	private static Stage _primaryStage;
+	
+	private static FileNode FILE_NODE;
+	private static TreeItem<FileNode> TREE_MODEL;
+	
+	
+	static {
+		FILE_NODE = new FileNode();
+		TREE_MODEL = createTreeModel(FILE_NODE);
+	}
 
 	@Override
 	public void start(Stage primaryStage) {
 		_primaryStage = primaryStage;
 		primaryStage.setTitle("Project Inspector");
 
-		TreeItem<String> treeModel = createTreeModel();
-		TreeView<String> treeView = new TreeView<>(treeModel);
+		
+		TreeView<FileNode> treeView = new TreeView<FileNode>(TREE_MODEL);
+//		FileNodeCellFactory factory = new FileNodeCellFactory();
+//		treeView.setCellFactory(factory);
 
 		Canvas canvas = new Canvas(600, 400);
 		SplitPane splitPane = new SplitPane();
@@ -45,16 +58,13 @@ public  class MainApp extends Application {
 		primaryStage.show();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {		
 		launch(args);
 	}
 
-	private TreeItem<String> createTreeModel() {
-		TreeItem<String> treeModel = new TreeItem<>("Root");
-		treeModel.getChildren().add(new TreeItem<>("child1"));
-		treeModel.getChildren().add(new TreeItem<>("child2"));
-		treeModel.getChildren().add(new TreeItem<>("child3"));
-		return treeModel;
+	private static TreeItem<FileNode> createTreeModel(FileNode fileNode) {
+
+		return new TreeItem<FileNode>(fileNode);
 	}
 
 	private HBox createStatusBar() {
@@ -123,6 +133,10 @@ public  class MainApp extends Application {
 
 	public static  Stage getPrimaryStage() {
 		return _primaryStage;
+	}
+	
+	public static FileNode getFileNode() {
+		return FILE_NODE;
 	}
 
 }
